@@ -108,11 +108,15 @@ def filesorter(filename, foldername, fitskeyword_to_check, keyword, current_path
 class Calibration:
     
     class MasterImage:
-        def __init__(self, calibration, frames):
-            self.calibration = calibration
-            self.data = mediancombine(frames)
+        def __init__(self, frames, cal_type):
+            
+            if cal_type == 'bias':
+                self.data = mediancombine(frames)
+            elif cal_type == 'flats':
+                m_combined = mediancombine(frames)
+                self.data = m_combined/np.median(m_combined)
+                
             self.median = np.median(self.data)
-     
             
         def save(self, output_filename, output_dir = os.getcwd()):
             savepath = os.path.join(output_dir,output_filename)
@@ -156,7 +160,7 @@ class Calibration:
         return representation_text
             
             
-    def generate_master_bias(self, bias_frames):
+    def generate_master(self, frames):
         """Creates a master bias by taking a median combination of all input bias frames.
 
         Args:
@@ -168,27 +172,11 @@ class Calibration:
             >>> example_calibration.generate_master(bias_frames)
             >>> example_calibration.master.data
         """
-        self.frames = bias_frames
-        self.master = self.MasterImage(self, bias_frames)
+        
+        self.frames = frames
+        self.master = self.MasterImage(frames, self.cal_type)
 
-        return
-    
-    def generate_master_flat(self, flat_frames):
-        '''
-        Median combines and normalizes a list of flatfields
-        
-        Args:
-           flat_frames (str): list of flats to be median combined
-
-        Output:
-        Returns the median frame
-        '''
-        self.frames = flat_frames
-        self.master = self.MasterImage(self, flat_frames)
-        norm = self.master/np.median(self.master)
-        
-        return
-        
+        return self.master
         
     def apply(self, input_fits_filepath, save = False, output_dir = None):
         """Apply this calibration to a fits file
