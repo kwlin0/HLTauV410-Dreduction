@@ -217,13 +217,15 @@ class Calibration:
 
                 #Bias subtract the science image
                 b_subtracted_image = image - master_bias_scaled
+                
+                b_subtracted_image_cropped = b_subtracted_image[0:4099,0:4099]
 
                 #fits.writeto(output_dir +'b'+ output_filename, b_subtracted_image,fits.getheader(im),overwrite=True)
 
-                hdu = fits.PrimaryHDU(b_subtracted_image)
+                hdu = fits.PrimaryHDU(b_subtracted_image_cropped)
                 return hdu
             
-        elif self.cal_type == 'flat':
+        elif self.cal_type == 'flats':
             prefix = 'f_'
             
             def create_calibrated_image(input_fits_filepath):
@@ -235,12 +237,12 @@ class Calibration:
                 hdr = fits.getheader(input_fits_filepath)
 
                 # Sets variable mf (master flat) equal to the data of the master flat frame
-                mf = fits.getdata(path_to_mflat)
+                mf = self.master.data
 
                 # Creates variable f_data for the flatfielded image; sets it equal to the image array divided by the master flat
                 f_data = data/mf
 
-                hdu = fits.PrimaryHDU(b_subtracted_image)
+                hdu = fits.PrimaryHDU(f_data)
                 return hdu
             
         if isinstance(input_fits_filepath,list):
